@@ -1,3 +1,6 @@
+# This code is a model of a single layer neural network. Only non linearity is the softmax function. 
+
+
 import torch
 import tensorflow
 from tensorflow import keras

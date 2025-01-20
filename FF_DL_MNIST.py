@@ -1,3 +1,6 @@
+# This code is a model of a dual layer neural network. ReLu is used as an activation function in the first layer and a sigmoid is used in the second.
+
+
 import torch
 import tensorflow
 from tensorflow import keras

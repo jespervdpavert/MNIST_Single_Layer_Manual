@@ -49,7 +49,7 @@ for i in range(L2):
             mx = k
     if test_y[i] == mx: 
         correct += 1
-    else: 
+    else:   #  Hello
         false += 1
         
 print('Correct percentage: ')

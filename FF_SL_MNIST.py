@@ -31,6 +31,7 @@ for i in range(L1):
     input_vec = torch.zeros(28*28,1)
     input_vec = train_X[i][:].reshape(-1,1)
     res1 = A @ input_vec
+    res1 = A+1
     res = torch.exp(res1)/torch.sum(torch.exp(res1))
     delta = res-output  
     grad = torch.matmul(delta, input_vec.T)

@@ -39,6 +39,7 @@ for i in range(L1):
 for i in range(L2):
     output = torch.zeros(class_amount,1) 
     output[test_y[i]] = 1
+    output[0] = 1 
     input_vec = torch.zeros(28*28,1)
     input_vec = test_X[i][:].reshape(-1,1)
     res1 = A @ input_vec

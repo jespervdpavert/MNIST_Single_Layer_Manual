@@ -1,3 +1,5 @@
+#93 percent accuracy
+
 import torch
 from torch.utils.data import Dataset, DataLoader
 import os

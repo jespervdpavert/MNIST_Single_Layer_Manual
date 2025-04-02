@@ -1,4 +1,4 @@
-#93 percent accuracy
+#93 percent accuracy, incomplete batch implementation.
 
 import torch
 from torch.utils.data import Dataset, DataLoader

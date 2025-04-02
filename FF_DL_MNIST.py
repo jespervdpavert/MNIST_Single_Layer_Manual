@@ -1,9 +1,12 @@
+# Code achieves about 97 percent MNIST accuracy.
+
+
 import torch
 from torch.utils.data import Dataset, DataLoader
 import os
 from keras.datasets import mnist
 from torch.nn import ReLU, Softmax
-alpha = 7e-2  # 10
+alpha = 7e-2  # 10 Close to Xavier initialization 0.04123930494 
 stepsize = 1e-3 #1e-3
 (train_X, train_y), (test_X, test_y) = mnist.load_data()
 train_X = (torch.flatten(torch.from_numpy(train_X).float())/255.0).view(60000, 784,1)
@@ -18,7 +21,7 @@ cntr = 0
 delta = torch.zeros(10,1)
 ## Train phase
 ## epochs 
-for j in range(3):  # epochs
+for j in range(10):  # epochs
     samples = [i for i in range(60000)]
     for i in range(60000):
         ind = torch.randint(0,len(samples),(1,))
@@ -59,3 +62,8 @@ for i in range(10000):
     print(f"Predicted was: {mx}")
     print(f"Actual is: {int(test_Y[i])}")
 print(pos/(pos+fal))
+
+torch.save(matrix_1, "matrix_1.pt")
+torch.save(bias_1, "bias_1.pt")
+torch.save(matrix_2, "matrix_2.pt")
+torch.save(bias_2, "bias_2.pt")

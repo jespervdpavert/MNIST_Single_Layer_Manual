@@ -1,87 +1,86 @@
-# This code is a model simple neural network without bias. ReLu is used as an activation function in the first layer and a sigmoid is used in the second.
-# 90 percent accuracy
-
-
 import torch
-import tensorflow
-from tensorflow import keras
+from torch.utils.data import Dataset, DataLoader
+import os
 from keras.datasets import mnist
-
-A = 1e-4*torch.randn(10, 28*28)
-B = 1e-9*torch.randn(10, 10)
-
-L1  = 60000
-correct = 0
-false = 0
-L2 = 10000
-class_amount = 10
-step_size = 1e-6
-step_size2 = 1e-4
-
+from torch.nn import ReLU, Softmax
+alpha = 10
+stepsize = 1e-3
 (train_X, train_y), (test_X, test_y) = mnist.load_data()
-train_X = torch.from_numpy(train_X).float()
-train_Y = torch.from_numpy(train_y).float()
-test_X = torch.from_numpy(test_X).float()
-test_Y = torch.from_numpy(test_y).float()
-
-train_X = torch.reshape(train_X, [60000,28*28])
-train_Y = torch.reshape(train_Y, [60000,1])
-test_X = torch.reshape(test_X, [10000,28*28])
-test_Y = torch.reshape(test_Y, [10000,1])
-
-for i in range(L1):
-    output = torch.zeros(class_amount,1) 
-    output[train_y[i]] = 1
-    input_vec = torch.zeros(28*28,1)
-    input_vec = train_X[i][:].reshape(-1,1)
-    res1 = A @ input_vec
-    res12 = torch.relu(res1)
-    nl = B @ res12 
-    res = torch.exp(nl)/torch.sum(torch.exp(nl))
-    delta = res-output  
-    grad1 = delta @ res12.T
-    B -= step_size*grad1  
-    vec = torch.zeros(10)
-    for cntr in range(10):
-        if res12[cntr] > 0:
-            vec[cntr] = 1
-    diagonal_matrix = torch.diag(vec)
-    grad2 = ((delta.T @ B) @ diagonal_matrix).T @ input_vec.T
-    A -= step_size2*grad2   
-
-for i in range(10):
-    output = torch.zeros(class_amount,1) 
-    output[test_y[i]] = 1
-    input_vec = torch.zeros(28*28,1)
-    input_vec = test_X[i][:].reshape(-1,1)
-    res1 = A @ input_vec
-    res12 = torch.relu(res1)
-    nl = B @ res12 
-    res = torch.exp(nl)/torch.sum(torch.exp(nl))
-
+train_X = (torch.flatten(torch.from_numpy(train_X).float())/255.0).view(60000, 784,1)
+train_Y = (torch.flatten(torch.from_numpy(train_y).float())).view(60000,1)
+test_X = (torch.flatten(torch.from_numpy(test_X).float())/255.0).view(10000, 784,1)
+test_Y = (torch.flatten(torch.from_numpy(test_y).float())).view(10000,1)
+matrix_1 = alpha*torch.randn(784,784)
+matrix_2 = alpha*torch.randn(10,784)
+bias_1 = alpha*torch.randn(784,1)
+bias_2 = alpha*torch.randn(10,1)
+cntr = 0
+delta = torch.zeros(10,1)
+## Train phase
+## epochs 
+for j in range(3):  # epochs
+    for i in range(60000):
+        sample = torch.randint(0,60000,(1,)).item()
+        correct = torch.zeros(10,1)
+        correct[int(train_Y[sample])] = 1.0  
+        res3 = torch.matmul(matrix_1,train_X[sample])+bias_1
+        res4 = torch.nn.functional.relu(res3)
+        res5 = torch.matmul(matrix_2,res4)+bias_2
+        res = torch.softmax(res5, dim=0)
+        delta = (res-correct)
+        cntr +=1
+        if cntr%1==0:
+            print(cntr)
+        # print(f"Batched finished: {cntr}")
+            matrix_2 += -stepsize*delta@res4.T
+            bias_2 += -stepsize*(delta.T@torch.eye(10)).T
+            relu_mask = torch.diag((res3.flatten()>0).float())
+            matrix_1 += -stepsize*(((delta.T@matrix_2)@relu_mask)).T@train_X[sample].T
+            bias_1 += -(stepsize*(delta.T@matrix_2)@relu_mask@torch.eye(784)).T
+            delta = torch.zeros(10,1)
+## Test phase
+pos = 0
+fal = 0
+for i in range(1000):
+    sample = torch.randint(0,10000,(1,)).item()
+    correct = torch.zeros(10,1)
+    correct[int(test_Y[sample])] = 1.0  
+    res3 = torch.matmul(matrix_1,test_X[sample])+bias_1
+    res4 = torch.nn.functional.relu(res3)
+    res5 = torch.matmul(matrix_2,res4)+bias_2
+    res = torch.softmax(res5, dim=0)  
     mx =  torch.argmax(res)
-    if test_y[i] == mx:
-        correct += 1
+    if int(test_Y[sample]) == mx.item():
+        pos += 1
     else:
-        false += 1
-print('Correct percentage: ')
-print(correct/(false+correct))
+        fal += 1
+    print(f"Predicted was: {mx}")
+    print(f"Actual is: {int(test_Y[sample])}")
+print(pos/(pos+fal))
+# pos = 0
+# fal = 0
+# for i in range(100):
+#     sample = int(torch.randint(0,60000,(1,)))
+#     correct = torch.zeros(10,1)
+#     correct[int(train_Y[sample])] = 1.0  
+#     res3 = torch.matmul(matrix_1,train_X[sample])+bias_1
+#     res4 = torch.nn.functional.relu(res3)
+#     res5 = torch.matmul(matrix_2,res4)+bias_2
+#     res = torch.softmax(res5, dim=0)  
+#     mx =  torch.argmax(res)
+#     if int(train_Y[sample]) == int(mx):
+#         pos += 1
+#         print("HII")
+#     else:
+#         fal += 1
+#     print(f"Predicted was: {mx}")
+#     print(f"Actual is: {int(train_Y[sample])}")
+# print(pos/(pos+fal))
 
 
+# import matplotlib.pyplot as plt
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# # Display the image of the last test sample
+# plt.imshow(test_X[19].view(28, 28), cmap='gray')  # 28x28 is the image shape for MNIST
+# plt.title(f"True label: {int(test_Y[19].item())}")
+# plt.show()
